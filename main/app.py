@@ -1,8 +1,13 @@
-from flask import Flask
+from dataclasses import dataclass
+
+import os
+import requests
+from flask import Flask, jsonify, abort
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import UniqueConstraint
-import os
+
+from producer import publish
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
@@ -11,12 +16,18 @@ CORS(app)
 db = SQLAlchemy(app)
 
 
+@dataclass
 class Product(db.Model):
+    id: int
+    title: str
+    image: str
+
     id = db.Column(db.Integer, primary_key=True, autoincrement=False)
     title = db.column(db.String(200))
     image = db.column(db.String(200))
 
 
+@dataclass
 class ProductUser(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String(200))
@@ -25,9 +36,28 @@ class ProductUser(db.Model):
     UniqueConstraint('user_id', 'product_id', name='user_product_unique')
 
 
-@app.route('/')
-def hello_world():  # put application's code here
-    return 'Hello World!'
+@app.route('/api/products')
+def index():
+    return jsonify(Product.query.all())
+
+
+@app.route('/api/products/<int:id>/like', methods=['POST'])
+def like(id):
+    req = requests.get('')
+    json = req.json()
+
+    try:
+        productUser = ProductUser(user_id=json['id'], product_id=id)
+        db.session.add(productUser)
+        db.session.commit()
+
+        publish('product_like', id)
+    except:
+        abort(400, 'You already liked this product')
+
+    return jsonify({
+        'message': 'success'
+    })
 
 
 if __name__ == '__main__':

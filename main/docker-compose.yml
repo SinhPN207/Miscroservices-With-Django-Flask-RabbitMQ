@@ -4,7 +4,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: python app.py
+    command: 'python app.py'
     volumes:
       - .:/app
     ports:
@@ -13,6 +13,15 @@ services:
       - DATABASE_URL=postgresql://postgres:215384330@db:5432/postgres
     depends_on:
       - db
+
+  queue:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: 'python consumer.py'
+    depends_on:
+      - db
+
   db:
     image: postgres:latest
     volumes:
