@@ -10,6 +10,7 @@ from sqlalchemy import UniqueConstraint
 from producer import publish
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 CORS(app)
 
@@ -18,9 +19,9 @@ db = SQLAlchemy(app)
 
 @dataclass
 class Product(db.Model):
-    id: int
-    title: str
-    image: str
+    # id: int
+    # title: str
+    # image: str
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=False)
     title = db.column(db.String(200))
